@@ -18,6 +18,7 @@ drawings:
 transition: slide-left
 # enable MDC Syntax: https://sli.dev/features/mdc
 mdc: true
+download: true
 ---
 
 # Vector Tiles
@@ -29,16 +30,6 @@ Workshop am Umweltbundesamt, Wien
     <carbon:arrow-right class="inline"/>
   </span>
 </div>
-
-<div class="abs-br m-6 flex gap-2">
-  <button @click="$slidev.nav.openInEditor()" title="Open in Editor" class="text-xl slidev-icon-btn opacity-50 !border-none !hover:text-white">
-    <carbon:edit />
-  </button>
-</div>
-
-<!--
-The last comment block of each slide will be treated as slide notes. It will be visible and editable in Presenter Mode along with the slide. [Read more in the docs](https://sli.dev/guide/syntax.html#notes)
--->
 
 ---
 layout: center
@@ -96,11 +87,11 @@ layout: two-cols
 layoutClass: gap-16
 transition: slide-up
 ---
-<img border="rounded" src="./img/vectors-austria.png" alt="Vectors">
+<img border="rounded" src="/img/vectors-austria.png" alt="Vectors">
 
 ::right::
 
-<img border="rounded" src="./img/vectortiles-austria.png" alt="Vector Tiles">
+<img border="rounded" src="/img/vectortiles-austria.png" alt="Vector Tiles">
 
 ---
 layout: two-cols-header
@@ -114,7 +105,7 @@ transition: fade-out
 
 <center>Original-Datensatz (QGIS)</center>
 <br>
-<img border="rounded" src="./img/vectors-pixelcount.png" alt="Vectors">
+<img border="rounded" src="/img/vectors-pixelcount.png" alt="Vectors">
 <br>
 <center>71 %</center>
 
@@ -122,7 +113,7 @@ transition: fade-out
 
 <center>Vektorkacheln (OpenLayers)</center>
 <br>
-<img border="rounded" src="./img/vectortiles-pixelcount.png" alt="Vector Tiles">
+<img border="rounded" src="/img/vectortiles-pixelcount.png" alt="Vector Tiles">
 <br>
 <center>27 %</center>
 
@@ -131,44 +122,44 @@ layout: two-cols
 layoutClass: gap-16
 transition: fade-out
 ---
-<img border="rounded" src="./img/vectors.gif" alt="Vectors">
+<img border="rounded" src="/img/vectors.gif" alt="Vectors">
 
 ::right::
 
-<img border="rounded" src="./img/vectortiles.gif" alt="Vector Tiles">
+<img border="rounded" src="/img/vectortiles.gif" alt="Vector Tiles">
 
 ---
 layout: two-cols
 layoutClass: gap-16
 transition: fade-out
 ---
-<img border="rounded" src="./img/vectors.png" alt="Vectors">
+<img border="rounded" src="/img/vectors.png" alt="Vectors">
 
 ::right::
 
-<img border="rounded" src="./img/vectortiles.png" alt="Vector Tiles">
+<img border="rounded" src="/img/vectortiles.png" alt="Vector Tiles">
 
 ---
 layout: two-cols
 layoutClass: gap-16
 transition: fade
 ---
-<img border="rounded" src="./img/vectors-nolines.png" alt="Vectors">
+<img border="rounded" src="/img/vectors-nolines.png" alt="Vectors">
 
 ::right::
 
-<img border="rounded" src="./img/vectortiles-nolines.png" alt="Vector Tiles">
+<img border="rounded" src="/img/vectortiles-nolines.png" alt="Vector Tiles">
 
 ---
 layout: two-cols
 layoutClass: gap-16
 transition: fade-out
 ---
-<img border="rounded" src="./img/vectors-lines.png" alt="Vectors">
+<img border="rounded" src="/img/vectors-lines.png" alt="Vectors">
 
 ::right::
 
-<img border="rounded" src="./img/vectortiles-lines.png" alt="Vector Tiles">
+<img border="rounded" src="/img/vectortiles-lines.png" alt="Vector Tiles">
 
 ---
 layout: center
