@@ -219,48 +219,105 @@ td {
 </style>
 
 ---
-layout: image-right
-image: https://cover.sli.dev
+layout: center
 ---
 
-# Code
+# Datenreduktion und Kartographie
 
-Use code snippets and get the highlighting directly, and even types hover!
+Karte statt Layer denken - jede Zoomstufe ist eine eigene Karte
 
-```ts {all|5|7|7-8|10|all} twoslash
-// TwoSlash enables TypeScript hover information
-// and errors in markdown code blocks
-// More at https://shiki.style/packages/twoslash
+* Ziel: konstante Datenmenge pro Kachel über alle Zoomstufen
+* Parzellenscharfe Daten sind bei einer Österreich-Ansicht nicht unbedingt sinnvoll
+* Für niedrige Zoomstufen daher besser vereinfachte Daten als Navigationshilfe
+* Nur Geometrien und Attribute in die Kacheln aufnehmen, die auch dargestellt werden
 
-import { computed, ref } from 'vue'
+---
+layout: center
+---
 
-const count = ref(0)
-const doubled = computed(() => count.value * 2)
+# Tippecanoe
 
-doubled.value = 2
+Erster Versuch
+
+```sh
+tippecanoe Flächeninanspruchnahme_2022.geojson \
+  --no-tile-compression \
+  --output-to-directory=Flächeninanspruchnahme_2022
 ```
 
-<arrow v-click="[4, 5]" x1="350" y1="310" x2="195" y2="334" color="#953" width="2" arrowSize="1" />
+```sh
+For layer 0, using name "Flächeninanspruchnahme_2022"
+4320257 features, 495206405 bytes of geometry and attributes, 64 bytes of string pool, 0 bytes of vertices, 0 bytes of nodes
+tile 5/17/11 size is 925420 (probably really 925420) with detail 12, >500000    
+tile 6/34/22 size is 3032425 (probably really 3032425) with detail 12, >500000    
+tile 6/34/22 size is 920521 (probably really 920521) with detail 11, >500000    
+tile 7/67/44 size is 520833 (probably really 520833) with detail 12, >500000    
+tile 7/69/45 size is 1425423 (probably really 1425423) with detail 12, >500000    
+tile 7/68/44 size is 2187558 (probably really 2187558) with detail 12, >500000    
+tile 7/68/44 size is 697780 (probably really 697780) with detail 11, >500000    
+tile 7/69/44 has 199924 (estimated 208667) features, >200000    
+Try using --drop-fraction-as-needed or --drop-densest-as-needed.
 
-<!-- This allow you to embed external code blocks -->
-<<< @/snippets/external.ts#snippet
 
-<!-- Footer -->
 
-[Learn more](https://sli.dev/features/line-highlighting)
+*** NOTE TILES ONLY COMPLETE THROUGH ZOOM 6 ***
+```
+Zu große Datenmenge auf niedrigen Zoomstufen!
 
-<!-- Inline style -->
-<style>
-.footnotes-sep {
-  @apply mt-5 opacity-10;
-}
-.footnotes {
-  @apply text-sm opacity-75;
-}
-.footnote-backref {
-  display: none;
-}
-</style>
+---
+layout: center
+---
+
+# Tippecanoe
+
+Zweiter Versuch
+
+```sh
+tippecanoe Flächeninanspruchnahme_2022.geojson \ 
+  --no-tile-compression \
+  --low-detail=10 \
+  --no-feature-limit \
+  --include=FI_Code \
+  --coalesce \
+  --reorder \
+  --detect-shared-borders \
+  --output-to-directory=Flächeninanspruchnahme_2022
+```
+
+```sh
+For layer 0, using name "Flächeninanspruchnahme_2022"
+4320257 features, 495206405 bytes of geometry and attributes, 64 bytes of string pool, 0 bytes of vertices, 0 bytes of nodes
+  99.9%  14/8930/5684 
+```
+Funktioniert. Sind wir glücklich?
+
+---
+layout: image-right
+image: /img/tile-chunks.gif
+---
+
+# Keine Geodaten!
+
+Polygone und Linien sind zerstückelt, Punkte wiederholt
+
+```js
+map.on('pointermove', (evt) => {
+  const container = map.getTargetElement();
+  const hit = map.getFeaturesAtPixel(
+    evt.pixel,
+    {layerFilter: layer => layer.getSource() !== selection});
+  if (hit.length) {
+    container.style.cursor = 'pointer';
+    container.title = hit.map(f => f.get('mapbox-layer').id).join(', ');
+  } else {
+    container.style.cursor = '';
+    container.title = '';
+  }
+  selection.clear();
+  selection.addFeatures(hit);
+});
+```
+
 
 <!--
 Notes can also sync with clicks
