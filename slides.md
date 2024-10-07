@@ -208,6 +208,8 @@ crsDefinition.update({
 💡 Daten bitte auch als ISO GeoJSON auf data.gv.at bereitstellen
 
 ---
+transition: slide-up
+---
 
 # Tippecanoe
 
@@ -415,7 +417,6 @@ Das ganze Vector Tiles Ökosystem wurde für Web Mercator entwickelt. Andere Pro
 ---
 layout: two-cols-header
 layoutClass: gap-16
-transition: slide-up
 ---
 
 # Austria Lambert oder Web Mercator?
@@ -437,7 +438,7 @@ Heiteres Projektionenraten
 
 ---
 layout: center
-transition: slide-up
+transition: fade-out
 ---
 
 # Genauigkeit von Vektorkacheln
@@ -793,7 +794,7 @@ transition: slide-up
 
 Grafischer Editor mit Macken
 
-![Maputnik](./img/maputnik.png)
+![Maputnik](/img/maputnik.png)
 
 https://maputnik.github.io/
 
