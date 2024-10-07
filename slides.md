@@ -208,73 +208,10 @@ crsDefinition.update({
 💡 Daten bitte auch als ISO GeoJSON auf data.gv.at bereitstellen
 
 ---
-layout: center
-transition: slide-up
----
-
----
-layout: center
-transition: slide-up
----
-
-# Projektion
-
-Web Mercator passt für Österreich
-
-Das ganze Vector Tiles Ökosystem wurde für Web Mercator entwickelt. Andere Projektionen sind möglich (z.T. mit Hacks), führen aber zu
-* Kompatibilitätsproblemen
-* keinem Mehrwert für den Benutzer
-
----
-layout: two-cols-header
-layoutClass: gap-16
-transition: slide-up
----
-
-# Austria Lambert oder Web Mercator?
-
-Heiteres Projektionenraten
-
-::left::
-<img border="rounded" src="/img/austria3857.png" alt="Welche Projektion?">
-
-::right::
-
-<img border="rounded" src="/img/austria31287.png" alt="Welche Projektion?">
-
-<style>
-  h1, p {
-    text-align: center
-  }
-</style>
-
----
-layout: center
-transition: slide-up
----
-
-# Genauigkeit von Vektorkacheln
-
-* Grundgenauigkeit über den Zoomstufen zugeordnete Resolutions ermittelbar.<br>
-  `resolution = 2 * 6378137 * Math.PI / 512 / 2 ** z` Meter/pixel<br>
-  `z = 0 -> resolution = 78271.51696402048`<br>
-  `z + 1 -> resolution * 2`
-* `maxzoom: 14` ist bei Vector Tiles üblich<br>
-  `z = 14 -> resolution = 4.777314267823516`
-* Dazu kommt die Genauigkeit (`detail`) der Koordinaten in der Kachel<br>
-  `tileResolution = 2 ** detail` Pixel<br>
-* Default `detail: 12`<br>
-  `detail = 12 -> tileResolution = 4096`
-* Gerenderte Kachelgröße: 512 x 512 Pixel
-* Gerenderte Kachelgröße bei *Overzoom* von z14 auf z17: 4096 x 4096 Pixel<br>
-  `512 -> 1024 -> 2048 -> 4096`<br>
-* `z = 17 -> resolution = 0.5971642834779395`
-
----
 
 # Tippecanoe
 
-Erster Versuch
+https://github.com/felt/tippecanoe/
 
 ```sh
 tippecanoe FI_2022_AT.geojson \
@@ -418,6 +355,8 @@ mapshaper-xl 16gb FI_2022_AT.geojson \
   -o FI_2022_AT_dissolved.geojson ndjson  
 ```
 
+https://github.com/mbloch/mapshaper
+
 ---
 layout: center
 transition: slide-up
@@ -459,6 +398,64 @@ map.on('pointermove', (evt) => {
 });
 ```
 Feature IDs zum Identifizieren der Teile zerstückelter Geometrien sind also wichtig!
+
+---
+layout: center
+transition: slide-up
+---
+
+# Projektion
+
+Web Mercator passt für Österreich
+
+Das ganze Vector Tiles Ökosystem wurde für Web Mercator entwickelt. Andere Projektionen sind möglich (z.T. mit Hacks), führen aber zu
+* Kompatibilitätsproblemen
+* keinem Mehrwert für den Benutzer
+
+---
+layout: two-cols-header
+layoutClass: gap-16
+transition: slide-up
+---
+
+# Austria Lambert oder Web Mercator?
+
+Heiteres Projektionenraten
+
+::left::
+<img border="rounded" src="/img/austria3857.png" alt="Welche Projektion?">
+
+::right::
+
+<img border="rounded" src="/img/austria31287.png" alt="Welche Projektion?">
+
+<style>
+  h1, p {
+    text-align: center
+  }
+</style>
+
+---
+layout: center
+transition: slide-up
+---
+
+# Genauigkeit von Vektorkacheln
+
+* Grundgenauigkeit über den Zoomstufen zugeordnete Resolutions ermittelbar.<br>
+  `resolution = 2 * 6378137 * Math.PI / 512 / 2 ** z` Meter/pixel<br>
+  `z = 0 -> resolution = 78271.51696402048`<br>
+  `z + 1 -> resolution * 2`
+* `maxzoom: 14` ist bei Vector Tiles üblich<br>
+  `z = 14 -> resolution = 4.777314267823516`
+* Dazu kommt die Genauigkeit (`detail`) der Koordinaten in der Kachel<br>
+  `tileResolution = 2 ** detail` Pixel<br>
+* Default `detail: 12`<br>
+  `detail = 12 -> tileResolution = 4096`
+* Gerenderte Kachelgröße: 512 x 512 Pixel
+* Gerenderte Kachelgröße bei *Overzoom* von z14 auf z17: 4096 x 4096 Pixel<br>
+  `512 -> 1024 -> 2048 -> 4096`<br>
+* `z = 17 -> resolution = 0.5971642834779395`
 
 ---
 layout: center
