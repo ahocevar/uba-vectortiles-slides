@@ -32,13 +32,16 @@ Workshop am Umweltbundesamt, Wien
 </div>
 
 ---
+layout: center
+---
 
 # Vector Tiles
 
 * Einordnung zwischen Vektordaten und Kartendarstellung
 * Wann und wo werden Vektorkacheln sinnvoll eingesetzt
+* Datenaufbereitung: Mapshaper, Tippecanoe
 * Möglichkeiten der Bereitstellung - statisch vs. dynamisch
-* Datenaufbereitung + Darstellung - Mapbox Style Specification
+* Darstellung - Mapbox Style Specification
 
 ---
 layout: center
@@ -47,7 +50,7 @@ transition: slide-up
 
 # Was sind Vector Tiles?
 
-In vordefinierten Kacheln organisierte Pakete von Kartendaten, optimiert für das Web
+In vordefinierten Kacheln organisierte Pakete von Daten, optimiert für das Web
 
 
 - <carbon-TransformBinary /> **Binäres Transfer-Format** - Mapbox Vector Tiles, basiert auf Protobuf
@@ -635,7 +638,7 @@ https://docs.protomaps.com
 * Schnelle Bereitstellung (z.B. auf S3)
 * Decodieren per Serverless Function oder im Client
 
-💡 Bei Bereitstellung der Tiles nach extern empfiehlt sich [Decodieren per Serverless Function](https://docs.protomaps.com/deploy/), ansonsten ist Decodieren im Client (z.B. [OpenLayers](https://github.com/openlayers/ol-mapbox-style/blob/8e76623dca95a3d607c01be39ab8d35e4c2e3802/examples/pmtiles.js) oder [MapLibre](https://docs.protomaps.com/pmtiles/maplibre)) einfacher und meist auch schneller.
+💡 Bei Bereitstellung der Tiles nach extern empfiehlt sich [Decodieren per Serverless Function](https://docs.protomaps.com/deploy/) (z.B. [DigitalOcean](https://github.com/ahocevar/do-function-pmtiles/)), ansonsten ist Decodieren im Client (z.B. [OpenLayers](https://github.com/openlayers/ol-mapbox-style/blob/8e76623dca95a3d607c01be39ab8d35e4c2e3802/examples/pmtiles.js) oder [MapLibre](https://docs.protomaps.com/pmtiles/maplibre)) einfacher und meist auch schneller.
 
 ---
 layout: center
@@ -688,6 +691,8 @@ Anatomie einer Kartenbeschreibung
 ```json
 {
   "version": "8",
+  "sprite": "",
+  "glyphs": "https://orangemug.github.io/font-glyphs/glyphs/{fontstack}/{range}.pbf",
   "sources": {},
   "layers": []
 }
@@ -784,10 +789,26 @@ npx geostyler-cli -s se -t mapbox --output out.json in.sld
 
 ---
 layout: center
+transition: slide-up
 ---
-Maputnik
+
+# Maputnik
 
 Grafischer Editor mit Macken
+
+https://maputnik.github.io/
+
+---
+layout: center
+---
+
+# Mapbox Studio
+
+Perfekter Style-Editor
+
+Gedacht für Verwendung mit den Diensten von Mapbox
+
+https://mapbox.com/studio/
 
 ---
 layout: center
