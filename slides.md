@@ -796,7 +796,15 @@ transition: slide-up
 
 Grafischer Editor mit Macken
 
+![Maputnik](./img/maputnik.png)
+
 https://maputnik.github.io/
+
+<style>
+  img {
+    height: 50vh;
+  }
+</style>
 
 ---
 layout: center
