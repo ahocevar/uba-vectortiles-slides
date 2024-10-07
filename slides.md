@@ -32,6 +32,15 @@ Workshop am Umweltbundesamt, Wien
 </div>
 
 ---
+
+# Vector Tiles
+
+* Einordnung zwischen Vektordaten und Kartendarstellung
+* Wann und wo werden Vektorkacheln sinnvoll eingesetzt
+* Möglichkeiten der Bereitstellung - statisch vs. dynamisch
+* Datenaufbereitung + Darstellung - Mapbox Style Specification
+
+---
 layout: center
 transition: slide-up
 ---
@@ -67,6 +76,23 @@ transition: fade-out
 
 
 ---
+layout: center
+transition: fade-out
+---
+
+# Warum Vector Tiles?
+
+Kartographisch ansprechende Karten für das Web mit guter Performance
+
+- Einfaches Publizieren von **Karten** (Tiles + Style)
+- Serverless
+- Geringere Datenmenge als Image Tiles
+- Hohe Bildschirmauflösungen und Head-up Ansichten
+- ~~Publizieren von Geodaten~~
+- ~~Editieren von Geometrien~~
+- ~~Vektorbasierte GIS-Analytik~~
+
+---
 layout: quote
 transition: fade-out
 ---
@@ -81,41 +107,225 @@ layout: center
 transition: slide-up
 ---
 
-# Flächeninanspruchnahme 2022
+# Culling
+
+Wegwerfen von Daten
+
+* Auswählen aus einer großen Menge
+* Beziehen aus einer Vielzahl von Quellen
+* Vereinfachen
+
 ---
-layout: two-cols
-layoutClass: gap-16
+layout: center
 transition: slide-up
 ---
-<img border="rounded" src="/img/vectors-austria.png" alt="Vectors">
 
-::right::
+# Beispiel OpenLayers
 
-<img border="rounded" src="/img/vectortiles-austria.png" alt="Vector Tiles">
+| | GeoJSON | Vector Tiles |
+| - | ------- | ------------ |
+| Einmalig beim Laden der Karte | <ul><li>Laden großer Dateien</li><li>Räumliche Indizierung im Speicher</li></ul> | |
+| Beim Interagieren mit der Karte | <ul><li>Daten für den aktuell sichtbaren Extent aus dem Speicher holen</li><li>Umrechnen von geographisch/projiziert auf Bildschirmkoordinaten</li><li>Vereinfachen der Geometrien (Quantizing, Douglas-Peucker)</li><li>Filtern</li><li>Rendern</li></ul> | <ul><li>(Laden der benötigten Vector Tiles)</li><li>(Filtern)</li><li>Rendern</li></ul> |
+
+<style>
+td {
+  vertical-align: top
+}
+</style>
+
+---
+layout: center
+transition: fade-out
+---
+
+# Datenreduktion
+
+Ziel: konstante Datenmenge pro Kachel über alle Zoomstufen
+
+* Automatische Datenreduktion hat ihre Grenzen
+* Nur Geometrien und Attribute in die Kacheln aufnehmen, die auch dargestellt werden
+* Nicht jede Darstellung ist für jede Zoomstufe geeignet
+
+Kartographie ist wesentliches Entwurfkriterium für Vector Tiles!
+
+---
+layout: quote
+transition: fade-out
+---
+
+Vector Tiles sind nicht Geodaten, sondern deren darstellungsoptimierte Repräsentation
+<br>
+<br>
+<div style="text-align: right">(Andreas Hocevar)</div>
+
+---
+layout: center
+transition: slide-up
+---
+
+# Flächeninanspruchnahme 2022
+
+https://www.data.gv.at/katalog/dataset/6b03edb4-42e9-4646-b9e6-20fa8c4797d0
+
+🧐 Leider kein direkter Download-Link
+
+---
+layout: center
+transition: slide-up
+---
+
+# Datenaufbereitung
+
+GeoPackage 😱
+
+```js
+const crsDefinition = gp.getSpatialReferenceSystemDao();
+const srsId = '31287';
+const crs = crsDefinition.getBySrsId(srsId);
+crs.setDefinition(`PROJCS["MGI / Austria Lambert",
+  GEOGCS["MGI", DATUM["Militar-Geographische_Institut",
+  SPHEROID["Bessel 1841",6377397.155,299.1528128],
+  TOWGS84[577.326,90.129,463.919,5.137,1.474,5.297,2.4232]],
+  PRIMEM["Greenwich",0, AUTHORITY["EPSG","8901"]],
+  UNIT["degree",0.0174532925199433, AUTHORITY["EPSG","9122"]], AUTHORITY["EPSG","4312"]],
+  PROJECTION["Lambert_Conformal_Conic_2SP"], PARAMETER["latitude_of_origin",47.5],
+  PARAMETER["central_meridian",13.3333333333333], PARAMETER["standard_parallel_1",49],
+  PARAMETER["standard_parallel_2",46], PARAMETER["false_easting",400000], PARAMETER["false_northing",400000],
+  UNIT["metre",1, AUTHORITY["EPSG","9001"]], AUTHORITY["EPSG","31287"]]`);
+crsDefinition.update({
+  srs_name: crs.srs_name,
+  srs_id: crs.srs_id,
+  organization: crs.organization,
+  organization_coordsys_id: crs.organization_coordsys_id,
+  definition: crs.definition,
+  description: crs.description
+});
+```
+
+💡 Daten bitte auch als ISO GeoJSON auf data.gv.at bereitstellen
+
+---
+layout: center
+transition: slide-up
+---
+
+---
+layout: center
+transition: slide-up
+---
+
+# Projektion
+
+Web Mercator passt für Österreich
+
+Das ganze Vector Tiles Ökosystem wurde für Web Mercator entwickelt. Andere Projektionen sind möglich (z.T. mit Hacks), führen aber zu
+* Kompatibilitätsproblemen
+* keinem Mehrwert für den Benutzer
 
 ---
 layout: two-cols-header
 layoutClass: gap-16
-transition: fade-out
+transition: slide-up
 ---
 
-<center><h2>Flächeninanspruchnahme: 7 %<br>(bezogen auf die Gesamtfläche Österreichs)</h2></center>
+# Austria Lambert oder Web Mercator?
+
+Heiteres Projektionenraten
 
 ::left::
-
-<center>Original-Datensatz (QGIS)</center>
-<br>
-<img border="rounded" src="/img/vectors-pixelcount.png" alt="Vectors">
-<br>
-<center>71 %</center>
+<img border="rounded" src="/img/austria3857.png" alt="Welche Projektion?">
 
 ::right::
 
-<center>Vektorkacheln (OpenLayers)</center>
-<br>
-<img border="rounded" src="/img/vectortiles-pixelcount.png" alt="Vector Tiles">
-<br>
-<center>27 %</center>
+<img border="rounded" src="/img/austria31287.png" alt="Welche Projektion?">
+
+<style>
+  h1, p {
+    text-align: center
+  }
+</style>
+
+---
+layout: center
+transition: slide-up
+---
+
+# Genauigkeit von Vektorkacheln
+
+* Grundgenauigkeit über den Zoomstufen zugeordnete Resolutions ermittelbar.<br>
+  `resolution = 2 * 6378137 * Math.PI / 512 / 2 ** z` Meter/pixel<br>
+  `z = 0 -> resolution = 78271.51696402048`<br>
+  `z + 1 -> resolution * 2`
+* `maxzoom: 14` ist bei Vector Tiles üblich<br>
+  `z = 14 -> resolution = 4.777314267823516`
+* Dazu kommt die Genauigkeit (`detail`) der Koordinaten in der Kachel<br>
+  `tileResolution = 2 ** detail` Pixel<br>
+* Default `detail: 12`<br>
+  `detail = 12 -> tileResolution = 4096`
+* Gerenderte Kachelgröße: 512 x 512 Pixel
+* Gerenderte Kachelgröße bei *Overzoom* von z14 auf z17: 4096 x 4096 Pixel<br>
+  `512 -> 1024 -> 2048 -> 4096`<br>
+* `z = 17 -> resolution = 0.5971642834779395`
+
+---
+
+# Tippecanoe
+
+Erster Versuch
+
+```sh
+tippecanoe FI_2022_AT.geojson \
+  --no-tile-compression \
+  --output-to-directory=FI_2022_AT
+```
+
+```sh
+For layer 0, using name "FI_2022_AT"
+4320257 features, 495206405 bytes of geometry and attributes, 64 bytes of string pool, 0 bytes of vertices, 0 bytes of nodes
+tile 5/17/11 size is 925420 (probably really 925420) with detail 12, >500000    
+tile 6/34/22 size is 3032425 (probably really 3032425) with detail 12, >500000    
+tile 6/34/22 size is 920521 (probably really 920521) with detail 11, >500000    
+tile 7/67/44 size is 520833 (probably really 520833) with detail 12, >500000    
+tile 7/69/45 size is 1425423 (probably really 1425423) with detail 12, >500000    
+tile 7/68/44 size is 2187558 (probably really 2187558) with detail 12, >500000    
+tile 7/68/44 size is 697780 (probably really 697780) with detail 11, >500000    
+tile 7/69/44 has 199924 (estimated 208667) features, >200000    
+Try using --drop-fraction-as-needed or --drop-densest-as-needed.
+
+
+*** NOTE TILES ONLY COMPLETE THROUGH ZOOM 6 ***
+```
+Zu große Datenmenge auf niedrigen Zoomstufen!
+
+---
+layout: center
+transition: slide-up
+---
+
+# Tippecanoe
+
+Zweiter Versuch
+
+Da die Features keine IDs haben, können wir die Funktion `--coalesce` verwenden.
+
+```sh
+tippecanoe FI_2022_AT.geojson \ 
+  --include=FI_Code \
+  --coalesce \
+  --reorder \
+  --detect-shared-borders \
+  --low-detail=10 \
+  --no-feature-limit \
+  --no-tile-compression \
+  --output-to-directory=FI_2022_AT
+```
+
+```sh
+For layer 0, using name "FI_2022_AT"
+4320257 features, 495206405 bytes of geometry and attributes, 64 bytes of string pool, 0 bytes of vertices, 0 bytes of nodes
+  99.9%  14/8930/5684 
+```
+Funktioniert. Sind wir glücklich?
 
 ---
 layout: two-cols
@@ -162,620 +372,430 @@ transition: fade-out
 <img border="rounded" src="/img/vectortiles-lines.png" alt="Vector Tiles">
 
 ---
-layout: center
-transition: fade-out
+layout: image-right
+image: /img/tile-chunks.gif
+transition: slide-up
 ---
 
-# Warum Vector Tiles?
+# Keine Geodaten!
 
-Kartographisch ansprechende Karten für das Web mit guter Performance
+Vector Tiles: Polygone und Linien sind zerstückelt, Punkte wiederholt
 
-- Einfaches Publizieren von **Karten** (Tiles + Style)
-- Serverless
-- Geringere Datenmenge als Image Tiles
-- Hohe Bildschirmauflösungen und Head-up Ansichten
-- ~~Publizieren von Geodaten~~
-- ~~Editieren von Geometrien~~
-- ~~Vektorbasierte GIS-Analytik~~
+```js
+const selection = new VectorSource();
+map.addLayer(new VectorLayer({ source: selection }));
 
----
-layout: quote
-transition: fade-out
----
+map.on('pointermove', (evt) => {
+  const hit = map.getFeaturesAtPixel(
+    evt.pixel,
+    {layerFilter: l => l.getSource() !== selection});
 
-Vector Tiles sind nicht Geodaten, sondern deren darstellungsoptimierte Repräsentation
-<br>
-<br>
-<div style="text-align: right">(Andreas Hocevar)</div>
+  selection.clear();
+  selection.addFeatures(hit);
+
+  map.getTargetElement().title = hit.length
+    ? hit[0].get('mapbox-layer').id
+    : ''
+});
+```
 
 ---
 layout: center
 transition: slide-up
 ---
 
-# Culling
+# Mapshaper
 
-Wegwerfen von Daten
+dissolve
 
-* Auswählen aus einer großen Menge
-* Beziehen aus einer Vielzahl von Quellen
-* Vereinfachen
+```sh
+mapshaper-xl 16gb FI_2022_AT.geojson \
+  -dissolve fields=FI_Code \
+  -explode \
+  -o FI_2022_AT_dissolved.geojson ndjson  
+```
+
+---
+layout: center
+transition: slide-up
+---
+
+# Tippecanoe
+
+Feature IDs erzeugen
+
+```sh
+tippecanoe FI_2022_AT_dissolved.geojson \
+  --low-detail=10 \
+  --generate-ids \
+  --output-to-directory FI_2022_AT_dissolved
+```
+
+---
+layout: image-right
+image: /img/tile-no-chunks.gif
+---
+
+# Zusammenhalt per ID
+
+Einfacheres und besseres Highlighting
+
+```js
+let ids = [];
+const selection = new VectorTileLayer({
+  renderMode: 'vector',
+  source: vectorTileSource,
+  style: (f) => ids.includes(f.getId()) ? style : null
+});
+map.addLayer(selection);
+
+map.on('pointermove', (evt) => {
+  const hit = map.getFeaturesAtPixel(evt.pixel);
+  ids = hit.map(f => f.getId());
+  selection.changed();
+});
+```
+Feature IDs zum Identifizieren der Teile zerstückelter Geometrien sind also wichtig!
+
+---
+layout: center
+transition: slide-up
+---
+
+# Kartographie
+
+Karte statt Layer denken - jede Zoomstufe ist eine eigene Karte
+
+Nicht nur bei topographischen, sondern auch bei thematischen Karten:
+
+* Niedrige Zoomstufen bieten Überblick und Navigationshilfe
+* Hohe Zoomstufen zeigen die Daten im Detail
+
+Parzellenscharfe Daten sind bei einer Österreich-Ansicht meist nicht sinnvoll!
+
+---
+layout: two-cols
+layoutClass: gap-16
+transition: slide-up
+---
+<img border="rounded" src="/img/vectors-austria.png" alt="Vectors">
+
+::right::
+
+<img border="rounded" src="/img/vectortiles-austria.png" alt="Vector Tiles">
+
+---
+layout: two-cols-header
+layoutClass: gap-16
+transition: slide-up
+---
+# Flächeninanspruchnahme: 7 %
+
+bezogen auf die Gesamtfläche Österreichs
+
+::left::
+
+### Original-Datensatz (QGIS)
+
+<img border="rounded" src="/img/vectors-pixelcount.png" alt="Vectors">
+
+71 %
+
+::right::
+
+### Vektorkacheln (OpenLayers)
+
+<img border="rounded" src="/img/vectortiles-pixelcount.png" alt="Vector Tiles">
+
+27 %
+
+<style>
+  h1, h2, h3, p {
+    text-align: center
+  }
+</style>
+
+---
+layout: center
+transition: slide-up
+---
+
+# Andere Darstellung für niedrige Zoomstufen
+
+Überblick und Navigation
+
+* 10.000 x 10.000 m Raster der Statistik Austria
+  https://data.statistik.gv.at/data/OGDEXT_RASTER_1_STATISTIK_AUSTRIA_L010000_LAEA.zip
+* Einfacher Join der beanspruchten Flächen auf die Rasterzellen 
+
+---
+layout: center
+transition: slide-up
+---
+
+# Mapshaper
+
+Aufbereitung Raster und Join
+
+```sh
+mapshaper data/STATISTIK_AUSTRIA_RASTER_L010000.shp \
+  -proj EPSG:4326 \
+  -filter-fields gid \
+  -o data/raster_10000.geojson ndjson precision=0.0000001
+```
+
+```sh
+mapshaper-xl 16gb data/raster_10000.geojson \
+  -join source=data/FI_2022_AT.geojson point-method calc='area=sum(FLAECHE)' \
+  -o data/FI_2022_AT_raster_10000.geojson ndjson 
+```
+
+---
+layout: center
+transition: slide-up
+---
+
+![Raster Flächeninanspruchnahme](/img/austria-grid-fi.png)
+
+---
+transition: slide-up
+---
+
+<img src="/img/austria-grid-styled.png">
+
+---
+layout: center
+transition: slide-up
+---
+
+# Tippecanoe
+
+Mehrere `source-layer`
+
+```sh
+tippecanoe \
+  data/FI_2022_AT_raster_10000.geojson \
+  data/FI_2022_AT_dissolved.geojson \
+  --generate-ids \
+  --output-to-directory data/FI_2022_AT
+```
+
+```sh
+For layer 0, using name "FI_2022_AT_raster_10000"
+For layer 1, using name "FI_2022_AT_dissolved"
+1859619 features, 364291795 bytes of geometry and attributes, 31975 bytes of string pool, 0 bytes of vertices, 0 bytes of nodes
+tile 6/34/22 size is 1308669 (probably really 1308669) with detail 12, >500000    
+tile 7/69/45 size is 588897 (probably really 588897) with detail 12, >500000    
+tile 7/68/44 size is 957516 (probably really 957516) with detail 12, >500000    
+tile 7/69/44 size is 2348493 (probably really 2348493) with detail 12, >500000  
+...
+```
+
+Unnötig viele Daten, weil alles in allen Zoomstufen.
 
 ---
 layout: center
 ---
 
-# Beispiel OpenLayers
+# Tippecanoe tile-join
 
-| | GeoJSON | Vector Tiles |
-| - | ------- | ------------ |
-| Einmalig beim Laden der Karte | <ul><li>Laden großer Dateien</li><li>Räumliche Indizierung im Speicher</li></ul> | |
-| Beim Interagieren mit der Karte | <ul><li>Daten für den aktuell sichtbaren Extent aus dem Speicher holen</li><li>Umrechnen von geographisch/projiziert auf Bildschirmkoordinaten</li><li>Vereinfachen der Geometrien (Quantizing, Douglas-Peucker)</li><li>Filtern</li><li>Rendern</li></ul> | <ul><li>(Laden der benötigten Vector Tiles)</li><li>(Filtern)</li><li>Rendern</li></ul> |
+Kombinieren mehrerer Datensätze
+
+```sh
+tippecanoe data/FI_2022_AT_raster_10000.geojson \
+  --maximum-zoom=10 \
+  --generate-ids \
+  --output data/FI_2022_AT_raster_10000.pmtiles
+```
+
+```sh
+tippecanoe data/FI_2022_AT_dissolved.geojson \
+  --minimum-zoom=11 \
+  --generate-ids \
+  --output data/FI_2022_AT_dissolved.pmtiles
+```
+
+```sh
+tile-join -output-to-directory data/FI_2022_AT.pmtiles \
+  data/FI_2022_AT_raster_10000.pmtiles \
+  data/FI_2022_AT_dissolved.pmtiles
+```
+
+---
+layout: center
+transition: slide-up
+---
+
+# PMTiles
+
+*"An open archive format for pyramids of tile data, accessible via HTTP Range Requests"*<br>
+https://docs.protomaps.com
+
+* Serverless (wie Cloud Optimized GeoTIFF)
+* Schnelle Bereitstellung (z.B. auf S3)
+* Decodieren per Serverless Function oder im Client
+
+💡 Bei Bereitstellung der Tiles nach extern empfiehlt sich [Decodieren per Serverless Function](https://docs.protomaps.com/deploy/), ansonsten ist Decodieren im Client (z.B. [OpenLayers](https://github.com/openlayers/ol-mapbox-style/blob/8e76623dca95a3d607c01be39ab8d35e4c2e3802/examples/pmtiles.js) oder [MapLibre](https://docs.protomaps.com/pmtiles/maplibre)) einfacher und meist auch schneller.
+
+---
+layout: center
+---
+
+# Bereitstellung von Vector Tiles
+
+
+
+|                | Kompatbilität | Upload | Performance | Kosten |
+| -------------- | ------------- | ------ | ----------- | ------ |
+| Ordnerstruktur | 👍 | 👎 | 👍 | 👍 |
+| PMTiles direkt | 👎 | 👍 | 👍 | 👍 |
+| PMTiles mit Serverless Function | 👍 | 👍 | 👍 | 👍 |
+| [MBTiles](https://github.com/consbio/mbtileserver) | 👍 | 👍 | 👍 | 👎 |
+| [GeoPackage](https://gitlab.com/imagemattersllc/ogc-vtp2/-/blob/master/extensions/2-mvte.adoc) | 👍 | 👍 | 👍 | 👎 |
+| Dynamisch (z.B. [GeoServer](https://docs.geoserver.org/stable/en/user/extensions/vectortiles/install.html)) | 👎 | 👍 | 👎 | 👎 |
 
 <style>
-td {
-  vertical-align: top
+  td {
+    text-align: center;
+  }
+  td:nth-child(1) {
+    text-align: left;
+  }
+</style>
+
+---
+layout: center
+transition: slide-up
+---
+
+# Immer mit Style
+
+[Mapbox Style Specification](https://docs.mapbox.com/style-spec/guides/)
+
+* Gut les- und schreibbar von Mensch und Maschine
+* Beschreibt die ganze Karte
+* "Layer"-Begriff wie in Zeichenprogrammen
+
+---
+layout: center
+transition: slide-up
+---
+
+# Mapbox Style JSON Struktur
+
+Anatomie einer Kartenbeschreibung
+
+```json
+{
+  "version": "8",
+  "sources": {},
+  "layers": []
 }
+```
+
+---
+layout: center
+transition: slide-up
+---
+
+# Sources
+
+Woher kommen die Daten, und von welchem Typ sind sie?
+
+```json
+{
+  "Basemap Ortho": {
+    "type": "raster",
+    "tiles": ["https://mapsneu.wien.gv.at/basemap/bmaporthofoto30cm/normal/google3857/{z}/{y}/{x}.jpeg"],
+    "tileSize": 256,
+    "maxzoom": 19
+  },
+  "FI_2022_AT": {
+    "type": "vector",
+    "url": "https://example.com/tiles/FI_2022_AT"
+  }
+}
+```
+
+`"url"` zeigt auf ein TileJSON:
+
+```json
+{
+  "tiles": ["https://example.com/tiles/FI_2022_AT/{z}/{x}/{y}.mvt"],
+  "maxzoom": 14
+}
+```
+
+---
+layout: center
+transition: slide-up
+---
+
+# Layers
+
+Komposition der gesamten Karte in "painter's order"
+
+```json
+[{
+  "id": "Basemap Ortho",
+  "type": "raster",
+  "source": "Basemap Ortho"
+}, {
+  "id": "Orientierungsraster",
+  "type": "fill",
+  "source": "FI_2022_AT",
+  "source-layer": "FI_2022_AT_raster_10000",
+  "maxzoom": 11,
+  "paint": { "fill-color": [ "interpolate", ["linear"], ["/", ["get", "area"], 10000000],
+      0, "rgba(0, 255, 0, 0.5)", 1, "rgba(220, 220, 220, 1)"]}
+}, {
+  "id": "Autobahn und Schnellstraße"
+  "filter": ["==", "FI_Code", 101],
+  "type": "fill",
+  "source": "FI_2022_AT",
+  "source-layer": "FI_2022_AT_dissolved",
+  "minzoom": 11,
+  "paint": { "fill-color": "rgba(0, 0, 0, 0.7)" }
+}]
+
+```
+
+---
+layout: center
+transition: slide-up
+---
+
+# Übernahme von Styles aus QGIS
+
+basierend auf SLD-Export und GeoStyler
+
+```sh
+npx geostyler-cli -s se -t mapbox --output out.json in.sld
+```
+
+![GeoStyler](/img/geostyler.gif)
+
+<style>
+  img {
+    padding-left: 15%;
+    padding-right: 15%;
+  }
 </style>
 
 ---
 layout: center
 ---
+Maputnik
 
-# Datenreduktion und Kartographie
-
-Karte statt Layer denken - jede Zoomstufe ist eine eigene Karte
-
-* Ziel: konstante Datenmenge pro Kachel über alle Zoomstufen
-* Parzellenscharfe Daten sind bei einer Österreich-Ansicht nicht unbedingt sinnvoll
-* Für niedrige Zoomstufen daher besser vereinfachte Daten als Navigationshilfe
-* Nur Geometrien und Attribute in die Kacheln aufnehmen, die auch dargestellt werden
-
----
-layout: center
----
-
-# Tippecanoe
-
-Erster Versuch
-
-```sh
-tippecanoe Flächeninanspruchnahme_2022.geojson \
-  --no-tile-compression \
-  --output-to-directory=Flächeninanspruchnahme_2022
-```
-
-```sh
-For layer 0, using name "Flächeninanspruchnahme_2022"
-4320257 features, 495206405 bytes of geometry and attributes, 64 bytes of string pool, 0 bytes of vertices, 0 bytes of nodes
-tile 5/17/11 size is 925420 (probably really 925420) with detail 12, >500000    
-tile 6/34/22 size is 3032425 (probably really 3032425) with detail 12, >500000    
-tile 6/34/22 size is 920521 (probably really 920521) with detail 11, >500000    
-tile 7/67/44 size is 520833 (probably really 520833) with detail 12, >500000    
-tile 7/69/45 size is 1425423 (probably really 1425423) with detail 12, >500000    
-tile 7/68/44 size is 2187558 (probably really 2187558) with detail 12, >500000    
-tile 7/68/44 size is 697780 (probably really 697780) with detail 11, >500000    
-tile 7/69/44 has 199924 (estimated 208667) features, >200000    
-Try using --drop-fraction-as-needed or --drop-densest-as-needed.
-
-
-
-*** NOTE TILES ONLY COMPLETE THROUGH ZOOM 6 ***
-```
-Zu große Datenmenge auf niedrigen Zoomstufen!
-
----
-layout: center
----
-
-# Tippecanoe
-
-Zweiter Versuch
-
-```sh
-tippecanoe Flächeninanspruchnahme_2022.geojson \ 
-  --no-tile-compression \
-  --low-detail=10 \
-  --no-feature-limit \
-  --include=FI_Code \
-  --coalesce \
-  --reorder \
-  --detect-shared-borders \
-  --output-to-directory=Flächeninanspruchnahme_2022
-```
-
-```sh
-For layer 0, using name "Flächeninanspruchnahme_2022"
-4320257 features, 495206405 bytes of geometry and attributes, 64 bytes of string pool, 0 bytes of vertices, 0 bytes of nodes
-  99.9%  14/8930/5684 
-```
-Funktioniert. Sind wir glücklich?
-
----
-layout: image-right
-image: /img/tile-chunks.gif
----
-
-# Keine Geodaten!
-
-Polygone und Linien sind zerstückelt, Punkte wiederholt
-
-```js
-map.on('pointermove', (evt) => {
-  const container = map.getTargetElement();
-  const hit = map.getFeaturesAtPixel(
-    evt.pixel,
-    {layerFilter: layer => layer.getSource() !== selection});
-  if (hit.length) {
-    container.style.cursor = 'pointer';
-    container.title = hit.map(f => f.get('mapbox-layer').id).join(', ');
-  } else {
-    container.style.cursor = '';
-    container.title = '';
-  }
-  selection.clear();
-  selection.addFeatures(hit);
-});
-```
-
-
-<!--
-Notes can also sync with clicks
-
-[click] This will be highlighted after the first click
-
-[click] Highlighted with `count = ref(0)`
-
-[click:3] Last click (skip two clicks)
--->
-
----
-level: 2
----
-
-# Shiki Magic Move
-
-Powered by [shiki-magic-move](https://shiki-magic-move.netlify.app/), Slidev supports animations across multiple code snippets.
-
-Add multiple code blocks and wrap them with <code>````md magic-move</code> (four backticks) to enable the magic move. For example:
-
-````md magic-move {lines: true}
-```ts {*|2|*}
-// step 1
-const author = reactive({
-  name: 'John Doe',
-  books: [
-    'Vue 2 - Advanced Guide',
-    'Vue 3 - Basic Guide',
-    'Vue 4 - The Mystery'
-  ]
-})
-```
-
-```ts {*|1-2|3-4|3-4,8}
-// step 2
-export default {
-  data() {
-    return {
-      author: {
-        name: 'John Doe',
-        books: [
-          'Vue 2 - Advanced Guide',
-          'Vue 3 - Basic Guide',
-          'Vue 4 - The Mystery'
-        ]
-      }
-    }
-  }
-}
-```
-
-```ts
-// step 3
-export default {
-  data: () => ({
-    author: {
-      name: 'John Doe',
-      books: [
-        'Vue 2 - Advanced Guide',
-        'Vue 3 - Basic Guide',
-        'Vue 4 - The Mystery'
-      ]
-    }
-  })
-}
-```
-
-Non-code blocks are ignored.
-
-```vue
-<!-- step 4 -->
-<script setup>
-const author = {
-  name: 'John Doe',
-  books: [
-    'Vue 2 - Advanced Guide',
-    'Vue 3 - Basic Guide',
-    'Vue 4 - The Mystery'
-  ]
-}
-</script>
-```
-````
-
----
-
-# Components
-
-<div grid="~ cols-2 gap-4">
-<div>
-
-You can use Vue components directly inside your slides.
-
-We have provided a few built-in components like `<Tweet/>` and `<Youtube/>` that you can use directly. And adding your custom components is also super easy.
-
-```html
-<Counter :count="10" />
-```
-
-<!-- ./components/Counter.vue -->
-<Counter :count="10" m="t-4" />
-
-Check out [the guides](https://sli.dev/builtin/components.html) for more.
-
-</div>
-<div>
-
-```html
-<Tweet id="1390115482657726468" />
-```
-
-<Tweet id="1390115482657726468" scale="0.65" />
-
-</div>
-</div>
-
-<!--
-Presenter note with **bold**, *italic*, and ~~striked~~ text.
-
-Also, HTML elements are valid:
-<div class="flex w-full">
-  <span style="flex-grow: 1;">Left content</span>
-  <span>Right content</span>
-</div>
--->
-
----
-class: px-20
----
-
-# Themes
-
-Slidev comes with powerful theming support. Themes can provide styles, layouts, components, or even configurations for tools. Switching between themes by just **one edit** in your frontmatter:
-
-<div grid="~ cols-2 gap-2" m="t-2">
-
-```yaml
----
-theme: default
----
-```
-
-```yaml
----
-theme: seriph
----
-```
-
-<img border="rounded" src="https://github.com/slidevjs/themes/blob/main/screenshots/theme-default/01.png?raw=true" alt="">
-
-<img border="rounded" src="https://github.com/slidevjs/themes/blob/main/screenshots/theme-seriph/01.png?raw=true" alt="">
-
-</div>
-
-Read more about [How to use a theme](https://sli.dev/guide/theme-addon#use-theme) and
-check out the [Awesome Themes Gallery](https://sli.dev/resources/theme-gallery).
-
----
-
-# Clicks Animations
-
-You can add `v-click` to elements to add a click animation.
-
-<div v-click>
-
-This shows up when you click the slide:
-
-```html
-<div v-click>This shows up when you click the slide.</div>
-```
-
-</div>
-
-<br>
-
-<v-click>
-
-The <span v-mark.red="3"><code>v-mark</code> directive</span>
-also allows you to add
-<span v-mark.circle.orange="4">inline marks</span>
-, powered by [Rough Notation](https://roughnotation.com/):
-
-```html
-<span v-mark.underline.orange>inline markers</span>
-```
-
-</v-click>
-
-<div mt-20 v-click>
-
-[Learn more](https://sli.dev/guide/animations#click-animation)
-
-</div>
-
----
-
-# Motions
-
-Motion animations are powered by [@vueuse/motion](https://motion.vueuse.org/), triggered by `v-motion` directive.
-
-```html
-<div
-  v-motion
-  :initial="{ x: -80 }"
-  :enter="{ x: 0 }"
-  :click-3="{ x: 80 }"
-  :leave="{ x: 1000 }"
->
-  Slidev
-</div>
-```
-
-<div class="w-60 relative">
-  <div class="relative w-40 h-40">
-    <img
-      v-motion
-      :initial="{ x: 800, y: -100, scale: 1.5, rotate: -50 }"
-      :enter="final"
-      class="absolute inset-0"
-      src="https://sli.dev/logo-square.png"
-      alt=""
-    />
-    <img
-      v-motion
-      :initial="{ y: 500, x: -100, scale: 2 }"
-      :enter="final"
-      class="absolute inset-0"
-      src="https://sli.dev/logo-circle.png"
-      alt=""
-    />
-    <img
-      v-motion
-      :initial="{ x: 600, y: 400, scale: 2, rotate: 100 }"
-      :enter="final"
-      class="absolute inset-0"
-      src="https://sli.dev/logo-triangle.png"
-      alt=""
-    />
-  </div>
-
-  <div
-    class="text-5xl absolute top-14 left-40 text-[#2B90B6] -z-1"
-    v-motion
-    :initial="{ x: -80, opacity: 0}"
-    :enter="{ x: 0, opacity: 1, transition: { delay: 2000, duration: 1000 } }">
-    Slidev
-  </div>
-</div>
-
-<!-- vue script setup scripts can be directly used in markdown, and will only affects current page -->
-<script setup lang="ts">
-const final = {
-  x: 0,
-  y: 0,
-  rotate: 0,
-  scale: 1,
-  transition: {
-    type: 'spring',
-    damping: 10,
-    stiffness: 20,
-    mass: 2
-  }
-}
-</script>
-
-<div
-  v-motion
-  :initial="{ x:35, y: 30, opacity: 0}"
-  :enter="{ y: 0, opacity: 1, transition: { delay: 3500 } }">
-
-[Learn more](https://sli.dev/guide/animations.html#motion)
-
-</div>
-
----
-
-# LaTeX
-
-LaTeX is supported out-of-box. Powered by [KaTeX](https://katex.org/).
-
-<div h-3 />
-
-Inline $\sqrt{3x-1}+(1+x)^2$
-
-Block
-$$ {1|3|all}
-\begin{aligned}
-\nabla \cdot \vec{E} &= \frac{\rho}{\varepsilon_0} \\
-\nabla \cdot \vec{B} &= 0 \\
-\nabla \times \vec{E} &= -\frac{\partial\vec{B}}{\partial t} \\
-\nabla \times \vec{B} &= \mu_0\vec{J} + \mu_0\varepsilon_0\frac{\partial\vec{E}}{\partial t}
-\end{aligned}
-$$
-
-[Learn more](https://sli.dev/features/latex)
-
----
-
-# Diagrams
-
-You can create diagrams / graphs from textual descriptions, directly in your Markdown.
-
-<div class="grid grid-cols-4 gap-5 pt-4 -mb-6">
-
-```mermaid {scale: 0.5, alt: 'A simple sequence diagram'}
-sequenceDiagram
-    Alice->John: Hello John, how are you?
-    Note over Alice,John: A typical interaction
-```
-
-```mermaid {theme: 'neutral', scale: 0.8}
-graph TD
-B[Text] --> C{Decision}
-C -->|One| D[Result 1]
-C -->|Two| E[Result 2]
-```
-
-```mermaid
-mindmap
-  root((mindmap))
-    Origins
-      Long history
-      ::icon(fa fa-book)
-      Popularisation
-        British popular psychology author Tony Buzan
-    Research
-      On effectiveness<br/>and features
-      On Automatic creation
-        Uses
-            Creative techniques
-            Strategic planning
-            Argument mapping
-    Tools
-      Pen and paper
-      Mermaid
-```
-
-```plantuml {scale: 0.7}
-@startuml
-
-package "Some Group" {
-  HTTP - [First Component]
-  [Another Component]
-}
-
-node "Other Groups" {
-  FTP - [Second Component]
-  [First Component] --> FTP
-}
-
-cloud {
-  [Example 1]
-}
-
-database "MySql" {
-  folder "This is my folder" {
-    [Folder 3]
-  }
-  frame "Foo" {
-    [Frame 4]
-  }
-}
-
-[Another Component] --> [Example 1]
-[Example 1] --> [Folder 3]
-[Folder 3] --> [Frame 4]
-
-@enduml
-```
-
-</div>
-
-Learn more: [Mermaid Diagrams](https://sli.dev/features/mermaid) and [PlantUML Diagrams](https://sli.dev/features/plantuml)
-
----
-foo: bar
-dragPos:
-  square: 691,32,167,_,-16
----
-
-# Draggable Elements
-
-Double-click on the draggable elements to edit their positions.
-
-<br>
-
-###### Directive Usage
-
-```md
-<img v-drag="'square'" src="https://sli.dev/logo.png">
-```
-
-<br>
-
-###### Component Usage
-
-```md
-<v-drag text-3xl>
-  <carbon:arrow-up />
-  Use the `v-drag` component to have a draggable container!
-</v-drag>
-```
-
-<v-drag pos="663,206,261,_,-15"undefinedundefinedundefined>
-  <div text-center text-3xl border border-main rounded>
-    Double-click me!
-  </div>
-</v-drag>
-
-<img v-drag="'square'" src="https://sli.dev/logo.png">
-
-###### Draggable Arrow
-
-```md
-<v-drag-arrow two-way />
-```
-
-<v-drag-arrow pos="67,452,253,46" two-way op70 />
-
----
-src: ./pages/imported-slides.md
-hide: false
----
-
----
-
-# Monaco Editor
-
-Slidev provides built-in Monaco Editor support.
-
-Add `{monaco}` to the code block to turn it into an editor:
-
-```ts {monaco}
-import { ref } from 'vue'
-import { emptyArray } from './external'
-
-const arr = ref(emptyArray(10))
-```
-
-Use `{monaco-run}` to create an editor that can execute the code directly in the slide:
-
-```ts {monaco-run}
-import { version } from 'vue'
-import { emptyArray, sayHello } from './external'
-
-sayHello()
-console.log(`vue ${version}`)
-console.log(emptyArray<number>(10).reduce(fib => [...fib, fib.at(-1)! + fib.at(-2)!], [1, 1]))
-```
+Grafischer Editor mit Macken
 
 ---
 layout: center
 class: text-center
 ---
 
-# Learn More
+# Unterlagen
 
-[Documentation](https://sli.dev) · [GitHub](https://github.com/slidevjs/slidev) · [Showcases](https://sli.dev/resources/showcases)
+https://ahocevar.net/uba-vectortiles-slides/ · [Slide Sources](https://github.com/ahocevar/uba-vectortiles-slides/) · [Demo App](https://github.com/ahocevar/uba-vectortiles/)<br><br><carbon-Email /> [mail@ahocevar.com](mailto:mail@ahocevar.com)
 
 <PoweredBySlidev mt-10 />
