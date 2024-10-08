@@ -617,7 +617,7 @@ tippecanoe data/FI_2022_AT_dissolved.geojson \
 ```
 
 ```sh
-tile-join -output-to-directory data/FI_2022_AT.pmtiles \
+tile-join -output data/FI_2022_AT.pmtiles \
   data/FI_2022_AT_raster_10000.pmtiles \
   data/FI_2022_AT_dissolved.pmtiles
 ```
@@ -800,7 +800,7 @@ https://maputnik.github.io/
 
 <style>
   img {
-    height: 50vh;
+    padding-right: 15%;
   }
 </style>
 
